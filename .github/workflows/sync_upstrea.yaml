@@ -27,7 +27,6 @@ jobs:
         TODAY=$(date -u +%Y-%m-%d)
         echo "TODAY=${TODAY}" >> $GITHUB_ENV
         BRANCH_NAME="auto_sync_upstream_${TODAY}"
-        git checkout -b "${BRANCH_NAME}"
         echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
 
         DS_FILES=(OWNERS .github/workflows/sync_upstrea.yaml)
