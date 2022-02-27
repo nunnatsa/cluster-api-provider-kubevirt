@@ -28,20 +28,18 @@ jobs:
         BRANCH_NAME="auto_sync_upstream_${TODAY}"
         git checkout -b "${BRANCH_NAME}"
 
-        DS_FILES=(OWNERS)
+        DS_FILES=(OWNERS .github/workflows/sync_upstrea.yaml)
         for f in ${DS_FILES[@]}; do
           cp "${f}" "${f}.untracked"
         done
 
-        set +e
-        git rebase upstream/main
-        set -e
+        git reset --hard upstream/main
 
         for f in ${DS_FILES[@]}; do
           mv "${f}.untracked" "${f}"
           git add "${f}"
         done
 
-        git -c core.editor=true rebase --continue
+        git commit -m "automatic sync ${TODAY}"
 
         git status
