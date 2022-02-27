@@ -1,0 +1,45 @@
+name: Sync with upstream
+
+on:
+#  schedule:
+#  - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  sync_upstream:
+    if: (github.repository == 'nunnatsa/cluster-api-provider-kubevirt')
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: check if needed
+      run: |-
+        set -x
+        git remote add upstream https://github.com/kubernetes-sigs/cluster-api-provider-kubevirt.git
+        git fetch upstream main
+        if [[ $(git diff upstream/main --name-only | grep -v OWNERS | grep -v .github/workflows/sync_upstrea.yaml | wc -l) -gt 0 ]]; then
+          echo "CHANGED=true" >> $GITHUB_ENV
+        fi
+    - name: git_sync
+      if: ${{ env.CHANGED }}
+      run: |-
+        set -x
+        TODAY=$(date -u +%Y-%m-%d)
+        BRANCH_NAME="auto_sync_upstream_${TODAY}"
+        git checkout -b "${BRANCH_NAME}"
+
+        DS_FILES=(OWNERS)
+        for f in ${DS_FILES[@]}; do
+          cp "${f}" "${f}.untracked"
+        done
+
+        git rebase upstream/main
+
+        for f in ${DS_FILES[@]}; do
+          mv "${f}.untracked" "${f}"
+          git add "${f}"
+        done
+
+        git -c core.editor=true rebase --continue
+
+        git status
