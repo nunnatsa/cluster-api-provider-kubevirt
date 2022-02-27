@@ -33,7 +33,9 @@ jobs:
           cp "${f}" "${f}.untracked"
         done
 
+        set +e
         git rebase upstream/main
+        set -e
 
         for f in ${DS_FILES[@]}; do
           mv "${f}.untracked" "${f}"
