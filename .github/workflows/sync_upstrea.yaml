@@ -25,8 +25,10 @@ jobs:
       run: |-
         set -x
         TODAY=$(date -u +%Y-%m-%d)
+        echo "TODAY=${TODAY}" >> $GITHUB_ENV
         BRANCH_NAME="auto_sync_upstream_${TODAY}"
         git checkout -b "${BRANCH_NAME}"
+        echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
 
         DS_FILES=(OWNERS .github/workflows/sync_upstrea.yaml)
         for f in ${DS_FILES[@]}; do
@@ -40,6 +42,25 @@ jobs:
           git add "${f}"
         done
 
-        git commit -m "automatic sync ${TODAY}"
+    - uses: peter-evans/create-pull-request@v3
+      if: ${{ env.CHANGED }}
+      with:
+        token: ${{ secrets.TEST_TOKEN }}
+        commit-message: |
+          automatic sync with upstream ${{ env.TODAY }}
 
-        git status
+          Signed-off-by: kapk bot <noreply@github.com>
+        committer: kapk bot <noreply@github.com>
+        delete-branch: true
+        title: automatic sync with upstream ${{ env.TODAY }}
+        body: |
+          automatic sync with upstream ${{ env.TODAY }}
+
+          Executed by kapk Bot.
+          ```release-note
+          automatic sync with upstream ${{ env.TODAY }}
+          ```
+        #assignees: rmohr,davidvossel,nunnatsa,nirarg
+        #reviewers: rmohr,davidvossel,nunnatsa,nirarg
+        team-reviewers: owners, maintainers
+        branch: ${{ env.BRANCH_NAME }}
